@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
+ * Portions Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
+ * Portions Copyright (c) 2022 James Bulpin
  *
  * SPDX-License-Identifier: Apache-2.0
  * 
@@ -106,14 +107,15 @@ int main()
             range = 5;
         }
 
-        for (int y = 0; y < CAMERA_HEIGHT; y++) {
-            for (int py = 0; py < PIXEL_RATIO; py++) {
-                st7789_set_cursor(0, y * PIXEL_RATIO + py);
-                for (int x = 0; x < CAMERA_WIDTH; x++) {
+        int leftOffset = LCD_WIDTH - CAMERA_HEIGHT * PIXEL_RATIO;
+        for (int x = 0; x < CAMERA_WIDTH; x++) {
+            for (int px = 0; px < PIXEL_RATIO; px++) {
+                st7789_set_cursor(leftOffset, LCD_HEIGHT - (x * PIXEL_RATIO + px));
+                for (int y = 0; y < CAMERA_HEIGHT; y++) {
                     float val = frame[32 * (23 - y) + x];
                     uint8_t hue = 240 - (uint8_t)(240.0*(val - minT)/range);
                     uint16_t pixel = HSLToRGB(hue, 1.0, 0.5);
-                    for (int px = 0; px < PIXEL_RATIO; px++) {
+                    for (int py = 0; py < PIXEL_RATIO; py++) {
                         st7789_put(pixel);
                     }
                 }
