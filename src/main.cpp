@@ -86,6 +86,10 @@ int main()
     ThermalCamera camera;
     float frame[768];
 
+    int leftOffset = LCD_WIDTH - CAMERA_HEIGHT * PIXEL_RATIO;
+    int crossHairsY = CAMERA_WIDTH * PIXEL_RATIO / 2 - 1;
+    int crossHairsX = CAMERA_HEIGHT * PIXEL_RATIO / 2 - 1;
+
     while (1) {
         camera.capture(frame);
 
@@ -107,16 +111,32 @@ int main()
             range = 5;
         }
 
-        int leftOffset = LCD_WIDTH - CAMERA_HEIGHT * PIXEL_RATIO;
         for (int x = 0; x < CAMERA_WIDTH; x++) {
             for (int px = 0; px < PIXEL_RATIO; px++) {
                 st7789_set_cursor(leftOffset, LCD_HEIGHT - (x * PIXEL_RATIO + px));
+                int lcdX = LCD_WIDTH - leftOffset;
+                int lcdY = x * PIXEL_RATIO + px;
                 for (int y = 0; y < CAMERA_HEIGHT; y++) {
                     float val = frame[32 * (23 - y) + x];
                     uint8_t hue = 240 - (uint8_t)(240.0*(val - minT)/range);
                     uint16_t pixel = HSLToRGB(hue, 1.0, 0.5);
                     for (int py = 0; py < PIXEL_RATIO; py++) {
-                        st7789_put(pixel);
+                        uint16_t p = pixel;
+
+                        // Crosshairs
+                        if ((lcdY == crossHairsY) || (lcdY == (crossHairsY+1))) {
+                            if ((lcdX > (crossHairsX - 20)) && (lcdX <= (crossHairsX + 20))) {
+                                p = 0; // Black
+                            }
+                        }
+                        if ((lcdX == crossHairsX) || (lcdX == (crossHairsX+1))) {
+                            if ((lcdY > (crossHairsY - 20)) && (lcdY <= (crossHairsY + 20))) {
+                                p = 0; // Black
+                            }
+                        }
+
+                        st7789_put(p);
+                        lcdX--;
                     }
                 }
             }
